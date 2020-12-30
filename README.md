@@ -1,4 +1,4 @@
-  # TL;DR
+# TL;DR
   Automate the [Creating IAM Entities for AWS Cloud Accounts 
 ](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) process using Terraform
 
@@ -26,7 +26,7 @@ The mapping between the stack outputs and the names used in the two different co
 | consoleUsername| - | consoleUsername |
 | signInLoginUrl | - | signInLoginUrl |
 
- # Policy files
+# Policy files
  Two policy files, which are shared by a Cloudformation version of this mechanism, are stored in s3:
  
  - [RedisLabsIAMUserRestrictedPolicy.json]: Defines restricted access policy for the `redislabs-user`
