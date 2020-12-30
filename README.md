@@ -1,10 +1,6 @@
   # TL;DR
   Automate the [Creating IAM Entities for AWS Cloud Accounts 
-](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) process using the following Cloudformation stack template:
-  
-  <a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=RedisCloud&templateURL=https://s3.amazonaws.com/cloudformation-templates.redislabs.com/RedisCloud.yaml">
-<img alt="Launch RedisCloud template" src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
-</a>
+](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) process using Terraform
 
 # Longer
 
@@ -30,11 +26,15 @@ The mapping between the stack outputs and the names used in the two different co
 | consoleUsername| - | consoleUsername |
 | signInLoginUrl | - | signInLoginUrl |
 
- # S3 Location
- The cloudformation template is stored in the publicly accessible Redislabs owned bucket at: `cloudformation-templates.redislabs.com/RedisCloud.yaml`
+ # Policy files
+ Two policy files, which are shared by a Cloudformation version of this mechanism, are stored in s3:
+ 
+ - [RedisLabsIAMUserRestrictedPolicy.json]: Defines restricted access policy for the `redislabs-user`
+ - [RedisLabsInstanceRolePolicy.json]: Defines the instance role policy for the instances managed by Redis Labs
+ ----------
+ 
+[RedisLabsIAMUserRestrictedPolicy.json]: https://s3.amazonaws.com/cloudformation-templates.redislabs.com/RedisLabsIAMUserRestrictedPolicy.json
 
-Copy the template to the bucket thus (assuming the AWS profile `redislabs`):
+[RedisLabsInstanceRolePolicy.json]: https://s3.amazonaws.com/cloudformation-templates.redislabs.com/RedisLabsInstanceRolePolicy.json
 
-```
-aws s3 --profile redislabs cp RedisCloud.yaml s3://cloudformation-templates.redislabs.com
-```
+
