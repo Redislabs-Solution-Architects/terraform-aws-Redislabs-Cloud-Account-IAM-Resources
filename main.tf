@@ -1,4 +1,3 @@
-# https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password
 terraform {
   required_providers {
     random = {
@@ -12,12 +11,12 @@ terraform {
   }
 }
 
-provider "random" {
+variable "pgp_key" {
+    type = string
+    description = "(Required) Either a base-64 encoded PGP public key, or a keybase username in the form `keybase:username`"
 }
 
-provider "aws" {
-}
-
+# https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password
 resource "random_password" "password" {
   length = 16
   special = true
@@ -100,7 +99,7 @@ resource "aws_iam_user_policy_attachment" "RedisLabsUserPolicyAttachment" {
 
 resource "aws_iam_access_key" "RedisLabsUserAccessKey" {
     user = aws_iam_user.RedisLabsUser.name
-    pgp_key = "keybase:toby_h_ferguson"
+    pgp_key = var.pgp_key
 }
 
 resource "aws_iam_role" "RedisLabsCrossAccountRole" {
