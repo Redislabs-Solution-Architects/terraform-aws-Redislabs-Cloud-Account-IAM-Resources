@@ -11,11 +11,6 @@ terraform {
   }
 }
 
-variable "pgp_key" {
-    type = string
-    description = "(Required) Either a base-64 encoded PGP public key, or a keybase username in the form `keybase:username`"
-}
-
 # https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password
 resource "random_password" "password" {
   length = 16
