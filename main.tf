@@ -16,8 +16,6 @@ provider "random" {
 }
 
 provider "aws" {
-	 profile = "tobyhf-admin"
-	 region = "us-east-1"
 }
 
 resource "random_password" "password" {
