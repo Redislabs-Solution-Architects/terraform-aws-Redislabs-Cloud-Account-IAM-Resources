@@ -4,7 +4,11 @@ output "accessKeyId" {
 }
 
 output "accessSecretKey" {
-    description = "The secret access key for the redislabs-user. *NOTE* The encrypted secret can be decoded on the command line: 'terraform output accessSecretKey | tr -d \" | base64 --decode | keybase pgp decrypt'"
+    description = <<EOF
+    The secret access key for the redislabs-user.
+    *NOTE* The encrypted secret can be decoded on the command line:
+    'terraform output accessSecretKey | tr -d \" | base64 --decode | keybase pgp decrypt'
+EOF    
     value = aws_iam_access_key.RedisLabsUserAccessKey.encrypted_secret
     sensitive = true
 }
@@ -27,7 +31,11 @@ output "signInLoginUrl" {
 }
 
 output "consolePassword" {
-    description = "The redislabs-user's password. *NOTE* The encrypted secret can be decoded on the command line: 'terraform output consolePassword | tr -d \" | base64 --decode | keybase pgp decrypt'"
+    description = <<EOF
+    The redislabs-user's password.
+    *NOTE* The encrypted secret can be decoded on the command line:
+    'terraform output consolePassword | tr -d \" | base64 --decode | keybase pgp decrypt'
+EOF    
     value = aws_iam_user_login_profile.RedisLabsUserLoginProfile.encrypted_password
     sensitive = true
 }
