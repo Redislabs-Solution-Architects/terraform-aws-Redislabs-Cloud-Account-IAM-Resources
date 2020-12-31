@@ -4,7 +4,7 @@ output "accessKeyId" {
 }
 
 output "accessSecretKey" {
-    description = "The secret access key for the redislabs-user. *NOTE* The encrypted secret can be decoded on the command line: 'terraform output accessSecretKey | tr -d \" | base64 --decode | keybase pgp decrypt'
+    description = "The secret access key for the redislabs-user. *NOTE* The encrypted secret can be decoded on the command line: 'terraform output accessSecretKey | tr -d \" | base64 --decode | keybase pgp decrypt'"
     value = aws_iam_access_key.RedisLabsUserAccessKey.encrypted_secret
     sensitive = true
 }
