@@ -27,7 +27,7 @@ output "signInLoginUrl" {
 }
 
 output "consolePassword" {
-    description = "The redislabs-user's password. *NOTE* The encrypted secret can be decoded on the command line: 'terraform output consolePassword | tr -d \" | base64 --decode | keybase pgp decrypt"'
+    description = "The redislabs-user's password. *NOTE* The encrypted secret can be decoded on the command line: 'terraform output consolePassword | tr -d \" | base64 --decode | keybase pgp decrypt'"
     value = aws_iam_user_login_profile.RedisLabsUserLoginProfile.encrypted_password
     sensitive = true
 }
