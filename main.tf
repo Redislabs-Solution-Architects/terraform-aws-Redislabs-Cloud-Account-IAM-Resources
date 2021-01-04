@@ -46,15 +46,10 @@ resource "aws_iam_instance_profile" "RedisLabsClusterNodeRoleInstanceProfile" {
   role = aws_iam_role.RedisLabsClusterNodeRole.name
 }
 
-data "aws_s3_bucket_object" "RedisLabsInstanceRolePolicy"  {
-  bucket = "cloudformation-templates.redislabs.com"
-  key    = "RedisLabsInstanceRolePolicy.json"
-}
-
 resource "aws_iam_policy" "RedisLabsInstanceRolePolicy" {
     name = "RedisLabsInstanceRolePolicy"
     description = "Instance role policy used by Redislabs for its cluster members"
-    policy = data.aws_s3_bucket_object.RedisLabsInstanceRolePolicy.body
+    policy = file("${path.module}/policies/RedisLabsInstanceRolePolicy.json")
 }
     
 resource "aws_iam_role_policy_attachment" "cluster-node-role-attach" {
@@ -62,16 +57,10 @@ resource "aws_iam_role_policy_attachment" "cluster-node-role-attach" {
   policy_arn = aws_iam_policy.RedisLabsInstanceRolePolicy.arn
 }
 
-data "aws_s3_bucket_object" "RedislabsIAMUserRestrictedPolicy" {
-  bucket = "cloudformation-templates.redislabs.com"
-  key    = "RedisLabsIAMUserRestrictedPolicy.json"
-}
-
 resource "aws_iam_policy" "RedislabsIAMUserRestrictedPolicy" {
     name = "RedislabsIAMUserRestrictedPolicy"
     description = "Policy used by RedisLabs users"
-    policy = data.aws_s3_bucket_object.RedislabsIAMUserRestrictedPolicy.body
-
+    policy = file("${path.module}/policies/RedislabsIAMUserRestrictedPolicy.json")
 }
 
 resource "aws_iam_user" "RedisLabsUser" {
