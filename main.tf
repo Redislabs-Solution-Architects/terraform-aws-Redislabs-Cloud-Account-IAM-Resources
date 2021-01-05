@@ -1,20 +1,14 @@
 terraform {
   required_providers {
-    random = {
-      source = "hashicorp/random"
-      version = "3.0.0"
-    }
     aws = {
       source = "hashicorp/aws"
       version = "3.21.0"
     }
+    rediscloud = {
+      source = "RedisLabs/rediscloud"
+      version = "0.2.1"
+    }
   }
-}
-
-# https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password
-resource "random_password" "password" {
-  length = 16
-  special = true
 }
 
 resource "aws_iam_role" "RedisLabsClusterNodeRole" {
@@ -72,7 +66,7 @@ resource "aws_iam_user" "RedisLabsUser" {
 
 resource "aws_iam_user_login_profile" "RedisLabsUserLoginProfile" {
   user    = aws_iam_user.RedisLabsUser.name
-  pgp_key = "keybase:toby_h_ferguson"
+  pgp_key = var.pgp_key
   password_reset_required = false
 }
 
@@ -83,7 +77,6 @@ resource "aws_iam_user_policy_attachment" "RedisLabsUserPolicyAttachment" {
 
 resource "aws_iam_access_key" "RedisLabsUserAccessKey" {
     user = aws_iam_user.RedisLabsUser.name
-    pgp_key = var.pgp_key
 }
 
 resource "aws_iam_role" "RedisLabsCrossAccountRole" {
@@ -118,5 +111,19 @@ resource "aws_iam_role_policy_attachment" "cross-account-role-attach" {
   policy_arn = aws_iam_policy.RedislabsIAMUserRestrictedPolicy.arn
 }
 
+data "aws_caller_identity" "current" {}
+
+resource "rediscloud_cloud_account" "cloud_account" {
+  access_key_id = aws_iam_access_key.RedisLabsUserAccessKey.id
+# The following does not work - we need the unencrypted password, but that isn't available
+# So this method can't be used until/unless the rediscloud API stops requiring it, or
+# terraform makes it available
+  console_password = aws_iam_user_login_profile.RedisLabsUserLoginProfile.encrypted_password
+  console_username = "redislabs-user"
+  access_secret_key = aws_iam_access_key.RedisLabsUserAccessKey.secret
+  name              = var.cloud_account_name
+  provider_type     = "AWS"
+  sign_in_login_url = "https://${data.aws_caller_identity.current.id}.signin.aws.amazon.com/console"
+}
 
 

@@ -1,3 +1,8 @@
+output "cloud_account_name" {
+    description = "Name of the cloud account created within Redislabs Subscription Manager"
+    value = var.cloud_account_name
+}    
+
 output "accessKeyId" {
     description = "The access key id for the redislabs-user"
     value = aws_iam_access_key.RedisLabsUserAccessKey.id
@@ -22,8 +27,6 @@ output "consoleUsername" {
     description =  "Redis Labs Users login username - redislabs-user"
     value = aws_iam_user.RedisLabsUser.name
 }
-
-data "aws_caller_identity" "current" {}
 
 output "signInLoginUrl" {
     description =  "Redis Labs User's console login URL"
