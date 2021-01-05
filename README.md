@@ -34,6 +34,47 @@ The mapping between the stack outputs and the names used in the two different co
 | consoleUsername| - | consoleUsername |
 | signInLoginUrl | - | signInLoginUrl |
 
+# `main.tf`
+
+The `main.tf` you'll need is this (using my keybase entry for the `pgp_key` value - you might well want to replace that with your own keybase entry!):
+
+```
+module "Redislabs-Cloud-Account-Resources" {
+    source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
+    pgp_key = "keybase:toby_h_ferguson"
+
+}
+
+output "accessKeyId" {
+    value = module.Redislabs-Cloud-Account-Resources.accessKeyId
+}
+
+output "accessSecretKey" {
+    value = module.Redislabs-Cloud-Account-Resources.accessSecretKey
+    sensitive = true
+}
+
+output "IAMRoleName" {
+    value =  module.Redislabs-Cloud-Account-Resources.IAMRoleName
+}
+
+output "consoleUsername" {
+    value = module.Redislabs-Cloud-Account-Resources.consoleUsername
+}
+
+output "signInLoginUrl" {
+    description =  "Redis Labs User's console login URL"
+    value = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
+}
+
+output "consolePassword" {
+    value = module.Redislabs-Cloud-Account-Resources.consolePassword
+    sensitive = true
+}
+```
+
+
+
 # Developers
 This module includes two policy files, the source of which is currently (Jan 2021) the [Creating IAM Entities for AWS Cloud Accounts](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) page.
 
