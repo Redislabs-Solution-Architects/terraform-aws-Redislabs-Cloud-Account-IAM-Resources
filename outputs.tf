@@ -14,7 +14,7 @@ output "accessSecretKey" {
     *NOTE* The encrypted secret can be decoded on the command line:
     'terraform output accessSecretKey | tr -d \" | base64 --decode | keybase pgp decrypt'
 EOF    
-    value = aws_iam_access_key.RedisLabsUserAccessKey.encrypted_secret
+    value = aws_iam_access_key.RedisLabsUserAccessKey.secret
     sensitive = true
 }
 
@@ -27,6 +27,8 @@ output "consoleUsername" {
     description =  "Redis Labs Users login username - redislabs-user"
     value = aws_iam_user.RedisLabsUser.name
 }
+
+data "aws_caller_identity" "current" {}
 
 output "signInLoginUrl" {
     description =  "Redis Labs User's console login URL"

@@ -111,19 +111,5 @@ resource "aws_iam_role_policy_attachment" "cross-account-role-attach" {
   policy_arn = aws_iam_policy.RedislabsIAMUserRestrictedPolicy.arn
 }
 
-data "aws_caller_identity" "current" {}
-
-resource "rediscloud_cloud_account" "cloud_account" {
-  access_key_id = aws_iam_access_key.RedisLabsUserAccessKey.id
-# The following does not work - we need the unencrypted password, but that isn't available
-# So this method can't be used until/unless the rediscloud API stops requiring it, or
-# terraform makes it available
-  console_password = aws_iam_user_login_profile.RedisLabsUserLoginProfile.encrypted_password
-  console_username = "redislabs-user"
-  access_secret_key = aws_iam_access_key.RedisLabsUserAccessKey.secret
-  name              = var.cloud_account_name
-  provider_type     = "AWS"
-  sign_in_login_url = "https://${data.aws_caller_identity.current.id}.signin.aws.amazon.com/console"
-}
 
 

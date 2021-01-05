@@ -1,49 +1,61 @@
 # TL;DR
-  Automate the manual [Creating IAM Entities for AWS Cloud Accounts 
-](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) process by using Terraform.
-
-A PGP key is required. See the variable `pgp_key` for details.
+A terraform module that completely replaces the manual [Create and Edit a Cloud Account for Redis Cloud Ultimate](https://docs.redislabs.com/latest/rc/how-to/view-edit-cloud-account/) and its subprocess ([Creating IAM Entities for AWS Cloud Accounts 
+](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/)).
 
 # Longer
 
-[Creating IAM Entities for AWS Cloud Accounts 
-](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) describes a manual process for creating the necessary resources so that you can subsequently _configure_ an AWS Cloud Account into your Redis Cloud Account, allowing your Redis Cloud Account to create resources in your AWS Cloud Account. 
+[Create and Edit a Cloud Account for Redis Cloud Ultimate](https://docs.redislabs.com/latest/rc/how-to/view-edit-cloud-account/) shows a manual process for creating a Redis Labs Cloud Account in Subscription Manager. It relies up [Creating IAM Entities for AWS Cloud Accounts 
+](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) which describes a manual process for creating the necessary resources. 
 
-This repo contains a terraform module to construct the necessary IAM resources.
+This repo contains a terraform module to automate both of those manual processes, reducing errors and enabling automation.
 
-If you configure an AWS Cloud Account by hand you'll be [following these instructions](https://docs.redislabs.com/latest/rc/how-to/view-edit-cloud-account/)
+Should you still require access to the  underlying AWS resources then you can obtain access via `terraform output` - see below for details.
 
-If you configure an AWS Cloud Account using the Cloud API you'll use [this specific call](https://api.redislabs.com/v1/swagger-ui.html#/Cloud%20Accounts/createCloudAccountUsingPOST)
-  
-The template will construct the necessary IAM resources required for both approaches. It will show the values in the 'Outputs' section of the stack, except for the secrets (`accessSecretKey` and `consolePassword`), where they are displayed as `<sensitive>`. The actual values of those secrets can be obtained using the general formula:
+# Basic Use
+In the basic use case we need to configure both the providers and the module with the necessary values. We construct a Redis Cloud Account called 'Cloud Account 1234'
 
+See [Redis Enterprise Cloud Provider](https://registry.terraform.io/providers/RedisLabs/rediscloud/latest/docs) and [AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs) for details about configuring the two providers.
+
+See this module's [input](https://registry.terraform.io/modules/TobyHFerguson/Redislabs-Cloud-Account-Resources/aws/latest?tab=inputs) documents for details about configuring this module.
+
+The following is the contents of the `main.tf` file:
 ```
-terraform output OUTPUT_VARIABLE | tr -d \" | base64 --decode | keybase pgp decrypt
-```
+terraform {
+    required_providers {
+        rediscloud = {
+            source = "RedisLabs/rediscloud"
+            version = "0.2.1"
+        }
+	aws = {
+	    source = "hashicorp/aws"
+	    version = "3.21.0"
+	}
+    }
+}
 
-where OUTPUT_VARIABLE is either `accessSecretKey` or `consolePassword`
+provider "aws" {
+    profile = "tobyhf-admin"
+    region = "us-east-1"
+}
 
-The mapping between the stack outputs and the names used in the two different configuration methods is shown below:
-  
-| Output | By Hand | By API|
-|---------|---|---|
-| IAMRoleName | IAM Role Name | - |
-| accessKeyId | AWS_ACCESS_KEY_ID | accessKeyId |
-| accessSecretKey | AWS_SECRET_ACCESS_KEY | accessSecretKey |
-| consolePassword | - | consolePassword |
-| consoleUsername| - | consoleUsername |
-| signInLoginUrl | - | signInLoginUrl |
+provider "rediscloud" {
+   api_key = "XXXXXXXX"
+   secret_key = "XXXXXX"
+}
 
-# `main.tf`
 
-The `main.tf` you'll need is this (using my keybase entry for the `pgp_key` value - you might well want to replace that with your own keybase entry!):
-
-```
 module "Redislabs-Cloud-Account-Resources" {
     source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
     pgp_key = "keybase:toby_h_ferguson"
+	cloud_account_name = "Cloud Account 1234"
 
 }
+```
+
+## Optional Outputs
+If we wanted to we could add an `outputs.tf` file to get all the outputs:
+
+```
 
 output "accessKeyId" {
     value = module.Redislabs-Cloud-Account-Resources.accessKeyId
@@ -73,9 +85,41 @@ output "consolePassword" {
 }
 ```
 
+## AWS Resource Details
+This module constructs all the resources required to configure a cloud account using one of two approaches. It also configures the cloud account, so these resources are only of marginal interest in normal use, but are included here for completeness.
+
+The two configuration approaches are:
+1. By hand, when one will [follow these instructions](https://docs.redislabs.com/latest/rc/how-to/view-edit-cloud-account/)
+1. By the Cloud API, when one will use [this specific call](https://api.redislabs.com/v1/swagger-ui.html#/Cloud%20Accounts/createCloudAccountUsingPOST)
+  
+One obtains the values of the resources as terraform outputs. The module shows the values in the 'Outputs' section, except for the secrets (`accessSecretKey` and `consolePassword`), where they are displayed as `<sensitive>`. 
+
+The `accessSecretKey` can be output directly if asked for explicitly:
+
+```
+terraform output accessSecretKey
+```
+
+The `consolePassword` is base-64 encoded, as well as being encrypted using a pgp key. It can be obtained thus:
+
+```
+terraform output consolePassword | tr -d \" | base64 --decode | keybase pgp decrypt
+```
+
+The mapping between the stack outputs and the names used in the two different configuration methods is shown below:
+  
+| Output | By Hand | By API|
+|---------|---|---|
+| IAMRoleName | IAM Role Name | - |
+| accessKeyId | AWS_ACCESS_KEY_ID | accessKeyId |
+| accessSecretKey | AWS_SECRET_ACCESS_KEY | accessSecretKey |
+| consolePassword | - | consolePassword |
+| consoleUsername| - | consoleUsername |
+| signInLoginUrl | - | signInLoginUrl |
 
 
-# Developers
+
+# Developer Notes
 This module includes two policy files, the source of which is currently (Jan 2021) the [Creating IAM Entities for AWS Cloud Accounts](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) page.
 
 Any changes to those policies should cause this module to be updated.
