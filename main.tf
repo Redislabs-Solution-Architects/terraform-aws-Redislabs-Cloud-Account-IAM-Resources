@@ -45,7 +45,7 @@ resource "aws_iam_policy" "RedisLabsInstanceRolePolicy" {
     description = "Instance role policy used by Redislabs for its cluster members"
     policy = file("${path.module}/policies/RedisLabsInstanceRolePolicy.json")
 }
-    
+
 resource "aws_iam_role_policy_attachment" "cluster-node-role-attach" {
   role       = aws_iam_role.RedisLabsClusterNodeRole.name
   policy_arn = aws_iam_policy.RedisLabsInstanceRolePolicy.arn

@@ -1,19 +1,10 @@
-output "cloud_account_name" {
-    description = "Name of the cloud account created within Redislabs Subscription Manager"
-    value = var.cloud_account_name
-}    
-
 output "accessKeyId" {
     description = "The access key id for the redislabs-user"
     value = aws_iam_access_key.RedisLabsUserAccessKey.id
 }
 
 output "accessSecretKey" {
-    description = <<EOF
-    The secret access key for the redislabs-user.
-    *NOTE* The encrypted secret can be decoded on the command line:
-    'terraform output accessSecretKey | tr -d \" | base64 --decode | keybase pgp decrypt'
-EOF    
+    description = "The secret access key for the redislabs-user."
     value = aws_iam_access_key.RedisLabsUserAccessKey.secret
     sensitive = true
 }
@@ -40,7 +31,7 @@ output "consolePassword" {
     The redislabs-user's password.
     *NOTE* The encrypted secret can be decoded on the command line:
     'terraform output consolePassword | tr -d \" | base64 --decode | keybase pgp decrypt'
-EOF    
+EOF
     value = aws_iam_user_login_profile.RedisLabsUserLoginProfile.encrypted_password
     sensitive = true
 }
