@@ -1,9 +1,62 @@
-# TL;DR
-  Automate the manual [Creating IAM Entities for AWS Cloud Accounts](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) process by using Terraform.
+# Overview
+This module automates the manual [Creating IAM Entities for AWS Cloud Accounts](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) process by using Terraform, and outputs the variables you need to follow the rest of that process.
 
-A PGP key is required. See the variable `pgp_key` for details.
+To use it simply do the following:
 
-# Longer
+1. create a `main.tf` as shown below (replacing the `profile`, `region` and `pgp_key` values for your own:
+```
+provider "aws" {
+profile = "tobyhf-admin"
+region = "us-east-1"
+}
+module "Redislabs-Cloud-Account-Resources" {
+source = "s3::https://s3.amazonaws.com/cloudformation-templates.redislabs.com/terraform-aws-Redislabs-Cloud-Account-IAM-Resources.zip"
+pgp_key = "keybase:toby_h_ferguson"
+}
+output "accessKeyId" {
+value = module.Redislabs-Cloud-Account-Resources.accessKeyId
+}
+output "accessSecretKey" {
+value = module.Redislabs-Cloud-Account-Resources.accessSecretKey
+sensitive = true
+}
+output "IAMRoleName" {
+value =  module.Redislabs-Cloud-Account-Resources.IAMRoleName
+}
+output "consoleUsername" {
+value = module.Redislabs-Cloud-Account-Resources.consoleUsername
+}
+output "signInLoginUrl" {
+description =  "Redis Labs User's console login URL"
+value = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
+}
+output "consolePassword" {
+value = module.Redislabs-Cloud-Account-Resources.consolePassword
+sensitive = true
+}
+```
+
+Notes:
+-  a `pgp_key` is required. See the [terraform docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_login_profile#pgp_key) for more details. 
+- Terraform requires [AWS credentials be supplied](https://www.terraform.io/docs/language/modules/sources.html#s3-bucket), but the source of the module is a public S3 bucket so any credentials will do!
+
+2. Initialize terraform with the module:
+```
+terraform init
+```
+
+3. Build the resources:
+
+```
+terraform apply
+```
+This will output the various data you need although you'll have to access the sensitive data thus:
+
+* accessSecretKey: `terraform output accessSecretKey`
+* consolePassword: `
+terraform output consolePassword | tr -d \" | base64 --decode | keybase pgp decrypt`
+
+# More Detailed Explanation
 
 [Creating IAM Entities for AWS Cloud Accounts](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) describes a manual process for creating the necessary IAM entities so that you can subsequently _configure_ an AWS Cloud Account into your Redis Cloud Account, allowing your Redis Cloud Account the necessary access to your AWS Cloud Account.
 
@@ -54,8 +107,8 @@ It is useful if we split this between three files:
 Setup the aws provider needed by this module:
 ```terraform
 provider "aws" {
-    profile = "tobyhf-admin"
-    region = "us-east-1"
+profile = "tobyhf-admin"
+region = "us-east-1"
 }
 ```
 
@@ -64,8 +117,8 @@ Setup the use of this module, configuring it with the required `pgp_key` by whic
 
 ```
 module "Redislabs-Cloud-Account-Resources" {
-    source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
-    pgp_key = "keybase:toby_h_ferguson"
+source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
+pgp_key = "keybase:toby_h_ferguson"
 }
 ```
 
@@ -74,30 +127,30 @@ Make the outputs easier to access:
 
 ```
 output "accessKeyId" {
-    value = module.Redislabs-Cloud-Account-Resources.accessKeyId
+value = module.Redislabs-Cloud-Account-Resources.accessKeyId
 }
 
 output "accessSecretKey" {
-    value = module.Redislabs-Cloud-Account-Resources.accessSecretKey
-    sensitive = true
+value = module.Redislabs-Cloud-Account-Resources.accessSecretKey
+sensitive = true
 }
 
 output "IAMRoleName" {
-    value =  module.Redislabs-Cloud-Account-Resources.IAMRoleName
+value =  module.Redislabs-Cloud-Account-Resources.IAMRoleName
 }
 
 output "consoleUsername" {
-    value = module.Redislabs-Cloud-Account-Resources.consoleUsername
+value = module.Redislabs-Cloud-Account-Resources.consoleUsername
 }
 
 output "signInLoginUrl" {
-    description =  "Redis Labs User's console login URL"
-    value = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
+description =  "Redis Labs User's console login URL"
+value = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
 }
 
 output "consolePassword" {
-    value = module.Redislabs-Cloud-Account-Resources.consolePassword
-    sensitive = true
+value = module.Redislabs-Cloud-Account-Resources.consolePassword
+sensitive = true
 }
 ```
 
@@ -120,22 +173,22 @@ We extend the providers to include `Redislabs/rediscloud`, and configure with th
 
 ```terraform
 provider "aws" {
-    profile = "tobyhf-admin"
-    region = "us-east-1"
+profile = "tobyhf-admin"
+region = "us-east-1"
 }
 
 terraform {
-  required_providers {
-    rediscloud = {
-      source = "RedisLabs/rediscloud"
-      version = "0.2.1"
-    }
-  }
+required_providers {
+rediscloud = {
+source = "RedisLabs/rediscloud"
+version = "0.2.1"
+}
+}
 }
 
 provider "rediscloud" {
-  api_key = "XXXX"
-  secret_key = "XXXX"
+api_key = "XXXX"
+secret_key = "XXXX"
 }
 
 ```
@@ -144,8 +197,8 @@ provider "rediscloud" {
 Unchanged:
 ```
 module "Redislabs-Cloud-Account-Resources" {
-    source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
-    pgp_key = "keybase:toby_h_ferguson"
+source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
+pgp_key = "keybase:toby_h_ferguson"
 }
 ```
 
@@ -154,18 +207,18 @@ We add the creation of the `rediscloud_cloud_account` resource, which is the key
 
 ```
 resource "rediscloud_cloud_account" "example" {
-  depends_on = [time_sleep.delay]
-  access_key_id     = module.Redislabs-Cloud-Account-Resources.accessKeyId
-  access_secret_key = module.Redislabs-Cloud-Account-Resources.accessSecretKey
-  console_username  = module.Redislabs-Cloud-Account-Resources.consoleUsername
-  console_password  = module.Redislabs-Cloud-Account-Resources.consolePassword
-  name              = "Tobys TF Account - 2"
-  provider_type     = "AWS"
-  sign_in_login_url = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
+depends_on = [time_sleep.delay]
+access_key_id     = module.Redislabs-Cloud-Account-Resources.accessKeyId
+access_secret_key = module.Redislabs-Cloud-Account-Resources.accessSecretKey
+console_username  = module.Redislabs-Cloud-Account-Resources.consoleUsername
+console_password  = module.Redislabs-Cloud-Account-Resources.consolePassword
+name              = "Tobys TF Account - 2"
+provider_type     = "AWS"
+sign_in_login_url = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
 }
 
 resource "time_sleep" "delay" {
-  create_duration = "15s"
+create_duration = "15s"
 }
 
 ```
@@ -194,22 +247,22 @@ This is unchanged from the previous example:
 
 ```terraform
 provider "aws" {
-    profile = "tobyhf-admin"
-    region = "us-east-1"
+profile = "tobyhf-admin"
+region = "us-east-1"
 }
 
 terraform {
-  required_providers {
-    rediscloud = {
-      source = "RedisLabs/rediscloud"
-      version = "0.2.1"
-    }
-  }
+required_providers {
+rediscloud = {
+source = "RedisLabs/rediscloud"
+version = "0.2.1"
+}
+}
 }
 
 provider "rediscloud" {
-  api_key = "XXXX"
-  secret_key = "XXXX"
+api_key = "XXXX"
+secret_key = "XXXX"
 }
 
 ```
@@ -218,7 +271,7 @@ provider "rediscloud" {
 Unchanged:
 ```
 module "Redislabs-Cloud-Account-Resources" {
-    source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
+source = "TobyHFerguson/Redislabs-Cloud-Account-Resources/aws"
 }
 ```
 
@@ -226,18 +279,18 @@ module "Redislabs-Cloud-Account-Resources" {
 It turns out that the `Redislabs-Cloud-Account-Resources` module creates some resources (e.g. policies, roles etc.) that aren't directly referenced by the subscription or cloud account resources. Nevertheless they can't be destroyed before either the subscription or cloud account resources. We therefore need to add the entire module to the `depends_on` clause to prevent deletion of these otherwise hidden resources:
 ```
 resource "rediscloud_cloud_account" "example" {
-  depends_on = [time_sleep.delay, module.Redislabs-Cloud-Account-Resources]
-  access_key_id     = module.Redislabs-Cloud-Account-Resources.accessKeyId
-  access_secret_key = module.Redislabs-Cloud-Account-Resources.accessSecretKey
-  console_username  = module.Redislabs-Cloud-Account-Resources.consoleUsername
-  console_password  = module.Redislabs-Cloud-Account-Resources.consolePassword
-  name              = "Tobys TF Account - 2"
-  provider_type     = "AWS"
-  sign_in_login_url = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
+depends_on = [time_sleep.delay, module.Redislabs-Cloud-Account-Resources]
+access_key_id     = module.Redislabs-Cloud-Account-Resources.accessKeyId
+access_secret_key = module.Redislabs-Cloud-Account-Resources.accessSecretKey
+console_username  = module.Redislabs-Cloud-Account-Resources.consoleUsername
+console_password  = module.Redislabs-Cloud-Account-Resources.consolePassword
+name              = "Tobys TF Account - 2"
+provider_type     = "AWS"
+sign_in_login_url = module.Redislabs-Cloud-Account-Resources.signInLoginUrl
 }
 
 resource "time_sleep" "delay" {
-  create_duration = "15s"
+create_duration = "15s"
 }
 ```
 
@@ -248,47 +301,47 @@ In this example we *must* define some payment method, and that payment method mu
 
 ```
 data "rediscloud_payment_method" "card" {
-    card_type = "Visa"
-    last_four_numbers = "1111"
+card_type = "Visa"
+last_four_numbers = "1111"
 }
 
 resource "random_password" "password" {
-  length = 20
-  upper = true
-  lower = true
-  number = true
-  special = false
+length = 20
+upper = true
+lower = true
+number = true
+special = false
 }
 
 resource "rediscloud_subscription" "toby-test-2" {
-  name = "tobys-test-2"
-  payment_method_id = data.rediscloud_payment_method.card.id
-  memory_storage = "ram"
+name = "tobys-test-2"
+payment_method_id = data.rediscloud_payment_method.card.id
+memory_storage = "ram"
 
-  cloud_provider {
-    provider = rediscloud_cloud_account.example.provider_type
-    cloud_account_id = rediscloud_cloud_account.example.id
-    region {
-      region = "eu-west-1"
-      networking_deployment_cidr = "10.0.0.0/24"
-      preferred_availability_zones = ["eu-west-1a"]
-    }
-  }
+cloud_provider {
+provider = rediscloud_cloud_account.example.provider_type
+cloud_account_id = rediscloud_cloud_account.example.id
+region {
+region = "eu-west-1"
+networking_deployment_cidr = "10.0.0.0/24"
+preferred_availability_zones = ["eu-west-1a"]
+}
+}
 
-  database {
-    name = "tf-example-database"
-    protocol = "redis"
-    memory_limit_in_gb = 1
-    data_persistence = "none"
-    throughput_measurement_by = "operations-per-second"
-    throughput_measurement_value = 10000
-    password = random_password.password.result
+database {
+name = "tf-example-database"
+protocol = "redis"
+memory_limit_in_gb = 1
+data_persistence = "none"
+throughput_measurement_by = "operations-per-second"
+throughput_measurement_value = 10000
+password = random_password.password.result
 
-    alert {
-      name = "dataset-size"
-      value = 40
-    }
-  }
+alert {
+name = "dataset-size"
+value = 40
+}
+}
 }
 ```
 
@@ -297,14 +350,14 @@ Here we provide the database endpoints and password used
 
 ```
 output "database_endpoints" {
-  value = {
-    for database in rediscloud_subscription.toby-test-2.database:
-      database.name => database.public_endpoint
-  }
+value = {
+for database in rediscloud_subscription.toby-test-2.database:
+database.name => database.public_endpoint
+}
 }
 
 output "database_password" {
-  value = random_password.password.result
+value = random_password.password.result
 }
 ```
 
@@ -321,11 +374,18 @@ This occurs when you haven't provided the correct credentials (`api` and `secret
 
 
 
-# Developer Notes
+# Redislabs Developer Notes
 This module includes two policy files, the source of which is currently (Jan 2021) the [Creating IAM Entities for AWS Cloud Accounts](https://docs.redislabs.com/latest/rc/how-to/creating-aws-user-redis-enterprise-vpc/) page.
 
-Any changes to those policies should cause this module to be updated.
+Any changes to those policies should cause this entire module to be updated.
 
+The two policy files are located in the `policies/` directory and are named:
 - `RedisLabsIAMUserRestrictedPolicy.json`: Defines restricted access policy for the `redislabs-user`
- - `RedisLabsInstanceRolePolicy.json`: Defines the instance role policy for the instances managed by Redis Labs
- ----------
+- `RedisLabsInstanceRolePolicy.json`: Defines the instance role policy for the instances managed by Redis Labs
+
+Updating this module is completed by constructing an archive file and copying it to the requisite S3 bucket:
+```
+zip terraform-aws-Redislabs-Cloud-Account-IAM-Resources.zip main.tf outputs.tf policies variables.tf &&
+aws s3 --profile redislabs cp terraform-aws-Redislabs-Cloud-Account-IAM-Resources.zip s3://cloudformation-templates.redislabs.com/
+```
+----------
