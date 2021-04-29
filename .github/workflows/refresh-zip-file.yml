@@ -2,13 +2,13 @@ name: Refresh Zip
 on: push
 jobs:
   Refresh-Zip-File:
-    runs-on: ubuntu-large
+    runs-on: ubuntu-latest
     env:
       BUCKET: iam-resource-automation-do-not-delete
       ZIPFILE: terraform-aws-Redislabs-Cloud-Account-IAM-Resources.zip
     steps:
       - name: checkout repo
-       uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       - name: Configure AWS credentials from Test account
         uses: aws-actions/configure-aws-credentials@v1
@@ -20,8 +20,6 @@ jobs:
       - name: copy zip locally
         run: aws s3 cp s3://${{ env.BUCKET }}/${{ env.ZIPFILE }} .
 
-      # Runs a single command using the runners shell
-            
       - name: refresh zip file
         uses: montudor/action-zip@v1.0.0
         with:
