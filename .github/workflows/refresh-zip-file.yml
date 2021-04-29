@@ -8,7 +8,7 @@ jobs:
       ZIPFILE: terraform-aws-Redislabs-Cloud-Account-IAM-Resources.zip
     steps:
       - name: checkout repo
-       uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       - name: Configure AWS credentials from Test account
         uses: aws-actions/configure-aws-credentials@v1
