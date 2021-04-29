@@ -2,7 +2,7 @@ name: Refresh Zip
 on: push
 jobs:
   Refresh-Zip-File:
-    runs-on: ubuntu-large
+    runs-on: ubuntu-latest
     env:
       BUCKET: iam-resource-automation-do-not-delete
       ZIPFILE: terraform-aws-Redislabs-Cloud-Account-IAM-Resources.zip
