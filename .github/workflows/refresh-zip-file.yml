@@ -1,0 +1,44 @@
+name: Refresh Zip
+on: push
+jobs:
+  Refresh-Zip-File:
+    runs-on: ubuntu-large
+    env:
+      BUCKET: iam-resource-automation-do-not-delete
+      ZIPFILE: terraform-aws-Redislabs-Cloud-Account-IAM-Resources.zip
+    steps:
+      - name: checkout repo
+       uses: actions/checkout@v2
+
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.REDISLABS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.REDISLABS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: copy zip locally
+        run: aws s3 cp s3://${{ env.BUCKET }}/${{ env.ZIPFILE }} .
+
+      # Runs a single command using the runners shell
+      - name: get policy files
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          curl -v --insecure -H "Authorization: token $TOKEN" -H 'Accept: application/vnd.github.v3.raw' -O -L "https://raw.githubusercontent.com/TobyHFerguson/redislabs-docs/add_automation/static/code/rv/RedisLabs{InstanceRole,IAMUserRestricted}Policy.json"
+
+      -name: move files to policies directory
+        run: |
+            mv *.json policies
+            
+      - name: refresh zip file
+        uses: montudor/action-zip@v1.0.0
+        with:
+          args: zip -fv ${{ ZIPFILE }} policies/*.json
+
+      - name: upload zip file to s3
+        run: aws s3 mv ${{ env.ZIPFILE }} s3://${{ env.BUCKET }}
+
+      
+        
