@@ -28,7 +28,7 @@ jobs:
         run: |
           curl -v --insecure -H "Authorization: token $TOKEN" -H 'Accept: application/vnd.github.v3.raw' -O -L "https://raw.githubusercontent.com/TobyHFerguson/redislabs-docs/add_automation/static/code/rv/RedisLabs{InstanceRole,IAMUserRestricted}Policy.json"
 
-      -name: move files to policies directory
+      - name: move files to policies directory
         run: |
             mv *.json policies
             
