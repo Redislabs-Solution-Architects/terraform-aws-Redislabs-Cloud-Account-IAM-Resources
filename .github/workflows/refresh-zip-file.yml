@@ -21,21 +21,11 @@ jobs:
         run: aws s3 cp s3://${{ env.BUCKET }}/${{ env.ZIPFILE }} .
 
       # Runs a single command using the runners shell
-      - name: get policy files
-        shell: bash
-        env:
-          TOKEN: ${{ secrets.TOKEN }}
-        run: |
-          curl -v --insecure -H "Authorization: token $TOKEN" -H 'Accept: application/vnd.github.v3.raw' -O -L "https://raw.githubusercontent.com/TobyHFerguson/redislabs-docs/add_automation/static/code/rv/RedisLabs{InstanceRole,IAMUserRestricted}Policy.json"
-
-      -name: move files to policies directory
-        run: |
-            mv *.json policies
             
       - name: refresh zip file
         uses: montudor/action-zip@v1.0.0
         with:
-          args: zip -fv ${{ ZIPFILE }} policies/*.json
+          args: zip -fv ${{ ZIPFILE }} *.tf
 
       - name: upload zip file to s3
         run: aws s3 mv ${{ env.ZIPFILE }} s3://${{ env.BUCKET }}
