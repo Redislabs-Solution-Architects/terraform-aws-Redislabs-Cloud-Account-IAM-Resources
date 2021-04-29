@@ -23,7 +23,7 @@ jobs:
       - name: refresh zip file
         uses: montudor/action-zip@v1.0.0
         with:
-          args: zip -fv ${{ ZIPFILE }} *.tf
+          args: zip -fv ${{ env.ZIPFILE }} *.tf
 
       - name: upload zip file to s3
         run: aws s3 mv ${{ env.ZIPFILE }} s3://${{ env.BUCKET }}
